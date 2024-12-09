@@ -1,0 +1,38 @@
+[versions]
+agp = "8.5.0"
+appcompatVersion = "1.6.1"
+cardview = "1.0.0"
+junit = "4.13.2"
+junitVersion = "1.2.1"
+espressoCore = "3.6.1"
+appcompat = "1.7.0"
+kotlinBom = "1.8.0"
+material = "1.12.0"
+activity = "1.9.2"
+constraintlayout = "2.1.4"
+materialVersion = "1.9.0"
+swiperefreshlayout = "1.1.0"
+volley = "1.2.1"
+junitJunit = "4.12"
+monitor = "1.7.2"
+
+[libraries]
+appcompat-v161 = { module = "androidx.appcompat:appcompat", version.ref = "appcompatVersion" }
+cardview = { module = "androidx.cardview:cardview", version.ref = "cardview" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+kotlin-bom = { module = "org.jetbrains.kotlin:kotlin-bom", version.ref = "kotlinBom" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
+constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
+material-v190 = { module = "com.google.android.material:material", version.ref = "materialVersion" }
+swiperefreshlayout = { group = "androidx.swiperefreshlayout", name = "swiperefreshlayout", version.ref = "swiperefreshlayout" }
+volley = { module = "com.android.volley:volley", version.ref = "volley" }
+junit-junit = { group = "junit", name = "junit", version.ref = "junitJunit" }
+monitor = { group = "androidx.test", name = "monitor", version.ref = "monitor" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+

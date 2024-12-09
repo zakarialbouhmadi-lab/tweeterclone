@@ -1,5 +1,6 @@
 package com.zakarialbouhmadi.tweeterclone;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
@@ -29,10 +30,14 @@ import java.util.Map;
 public class TweetAdapter extends RecyclerView.Adapter<TweetAdapter.TweetViewHolder> {
     private List<Tweet> tweets = new ArrayList<>();
     public static final String LIKE_URL = "https://blog.kraftsport.pl/api/twitter/like_tweet.php";
+    private SessionManager sessionManager;
     private Context context;
+
+
 
     public TweetAdapter(Context context) {
         this.context = context;
+        this.sessionManager=new SessionManager(context);
     }
 
     @NonNull
@@ -66,6 +71,8 @@ public class TweetAdapter extends RecyclerView.Adapter<TweetAdapter.TweetViewHol
         notifyDataSetChanged();
     }
 
+
+
     class TweetViewHolder extends RecyclerView.ViewHolder {
         private TextView textViewDate;
         private TextView textViewUsername;
@@ -89,22 +96,43 @@ public class TweetAdapter extends RecyclerView.Adapter<TweetAdapter.TweetViewHol
 
         }
 
-        public void bind(Tweet tweet) {
-            // Set the text values
-            textViewUsername.setText(tweet.getUsername());
-            textViewContent.setText(tweet.getContent());
-textViewDate.setText(tweet.getFormattedDate());
-textViewLikes.setText(String.valueOf(tweet.getLikesCount()));
-            textViewComments.setText(String.valueOf(tweet.getCommentsCount()));
 
-            // Set like button image based on whether user has liked
-            buttonLike.setImageResource(tweet.isLiked() ?
-                    android.R.drawable.star_big_on :
-                    android.R.drawable.star_big_off);
+        private void showDeleteDialog(Tweet tweet, int position) {
+            new AlertDialog.Builder(context)
+                    .setTitle("Delete Tweet")
+                    .setMessage("Are you sure you want to delete this tweet?")
+                    .setPositiveButton("Delete", (dialog, which) -> deleteTweet(tweet, position))
+                    .setNegativeButton("Cancel", null)
+                    .show();
+        }
 
-            // Set click listeners
-            buttonLike.setOnClickListener(v -> likeTweet(tweet));
-            buttonComment.setOnClickListener(v -> showComments(tweet));
+        private void deleteTweet(Tweet tweet, int position) {
+            String DELETE_TWEET_URL = "https://blog.kraftsport.pl/api/twitter/delete_tweet.php";
+
+            StringRequest request = new StringRequest(Request.Method.POST, DELETE_TWEET_URL,
+                    response -> {
+                        try {
+                            JSONObject jsonResponse = new JSONObject(response);
+                            if (jsonResponse.getBoolean("success")) {
+                                tweets.remove(position);
+                                notifyItemRemoved(position);
+                                Toast.makeText(context, "Tweet deleted", Toast.LENGTH_SHORT).show();
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    },
+                    error -> Toast.makeText(context, "Error deleting tweet", Toast.LENGTH_SHORT).show()) {
+                @Override
+                protected Map<String, String> getParams() {
+                    Map<String, String> params = new HashMap<>();
+                    params.put("tweet_id", String.valueOf(tweet.getId()));
+                    params.put("user_id", String.valueOf(sessionManager.getUserId()));
+                    return params;
+                }
+            };
+
+            Volley.newRequestQueue(context).add(request);
         }
 
         private void likeTweet(Tweet tweet) {
@@ -161,5 +189,32 @@ textViewLikes.setText(String.valueOf(tweet.getLikesCount()));
             intent.putExtra("tweet_id", tweet.getId());
             context.startActivity(intent);
         }
+
+        public void bind(Tweet tweet) {
+            // Set the text values
+            textViewUsername.setText(tweet.getUsername());
+            textViewContent.setText(tweet.getContent());
+textViewDate.setText(tweet.getFormattedDate());
+textViewLikes.setText(String.valueOf(tweet.getLikesCount()));
+            textViewComments.setText(String.valueOf(tweet.getCommentsCount()));
+
+            // Set like button image based on whether user has liked
+            buttonLike.setImageResource(tweet.isLiked() ?
+                    android.R.drawable.star_big_on :
+                    android.R.drawable.star_big_off);
+
+            // Set click listeners
+            buttonLike.setOnClickListener(v -> likeTweet(tweet));
+            buttonComment.setOnClickListener(v -> showComments(tweet));
+            // In bind method, add long click listener for delete:
+            itemView.setOnLongClickListener(v -> {
+                if (tweet.getUserId() == sessionManager.getUserId()) {
+                    showDeleteDialog(tweet, getAdapterPosition());
+                }
+                return true;
+            });
+        }
+
+
     }
 }

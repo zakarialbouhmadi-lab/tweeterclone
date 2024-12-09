@@ -69,14 +69,6 @@
                 android:layout_marginTop="8dp"
                 android:text="Follow"/>
 
-            <Button
-                android:id="@+id/buttonEditProfile"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Edit Profile"
-                android:visibility="gone" />
-
         </LinearLayout>
 
         <androidx.recyclerview.widget.RecyclerView

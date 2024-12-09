@@ -75,6 +75,14 @@ public class ProfileActivity extends AppCompatActivity {
         buttonFollow.setVisibility(isOwnProfile ? View.GONE : View.VISIBLE);
         buttonFollow.setOnClickListener(v -> toggleFollow());
 
+        if (isOwnProfile) {
+            Button buttonEditProfile = findViewById(R.id.buttonEditProfile);
+            buttonEditProfile.setVisibility(View.VISIBLE);
+            buttonEditProfile.setOnClickListener(v -> showEditProfileDialog());
+        } else {
+            findViewById(R.id.buttonEditProfile).setVisibility(View.GONE);
+        }
+
         // Load profile data
         loadProfile();
     }
@@ -131,6 +139,57 @@ public class ProfileActivity extends AppCompatActivity {
             boolean isFollowing = profile.getBoolean("is_following");
             updateFollowButton(isFollowing);
         }
+    }
+
+    private void showEditProfileDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View view = getLayoutInflater().inflate(R.layout.dialog_edit_profile, null);
+
+        EditText editTextUsername = view.findViewById(R.id.editTextUsername);
+        EditText editTextBio = view.findViewById(R.id.editTextBio);
+
+        // Pre-fill current values
+        editTextUsername.setText(textViewUsername.getText());
+        editTextBio.setText(textViewBio.getText());
+
+        builder.setView(view)
+                .setTitle("Edit Profile")
+                .setPositiveButton("Save", (dialog, which) -> {
+                    String username = editTextUsername.getText().toString().trim();
+                    String bio = editTextBio.getText().toString().trim();
+                    updateProfile(username, bio);
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void updateProfile(String username, String bio) {
+        String UPDATE_PROFILE_URL = "https://blog.kraftsport.pl/api/twitter/update_profile.php";
+
+        StringRequest request = new StringRequest(Request.Method.POST, UPDATE_PROFILE_URL,
+                response -> {
+                    try {
+                        JSONObject jsonResponse = new JSONObject(response);
+                        if (jsonResponse.getBoolean("success")) {
+                            Toast.makeText(this, "Profile updated successfully", Toast.LENGTH_SHORT).show();
+                            loadProfile(); // Reload profile data
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                },
+                error -> Toast.makeText(this, "Error updating profile", Toast.LENGTH_SHORT).show()) {
+            @Override
+            protected Map<String, String> getParams() {
+                Map<String, String> params = new HashMap<>();
+                params.put("user_id", String.valueOf(userId));
+                params.put("username", username);
+                params.put("bio", bio);
+                return params;
+            }
+        };
+
+        Volley.newRequestQueue(this).add(request);
     }
 
     @Override

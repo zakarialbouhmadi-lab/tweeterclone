@@ -29,6 +29,8 @@ public class CommentsActivity extends AppCompatActivity {
     private static final String COMMENTS_URL = "https://blog.kraftsport.pl/api/twitter/get_comments.php";
     private static final String POST_COMMENT_URL = "https://blog.kraftsport.pl/api/twitter/post_comment.php";
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,7 +49,7 @@ public class CommentsActivity extends AppCompatActivity {
         Button buttonPostComment = findViewById(R.id.buttonPostComment);
 
         recyclerViewComments.setLayoutManager(new LinearLayoutManager(this));
-        commentAdapter = new CommentAdapter();
+        commentAdapter = new CommentAdapter(this);
         recyclerViewComments.setAdapter(commentAdapter);
 
         buttonPostComment.setOnClickListener(v -> postComment());
