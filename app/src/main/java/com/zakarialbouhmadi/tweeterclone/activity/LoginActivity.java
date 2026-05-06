@@ -2,7 +2,6 @@ package com.zakarialbouhmadi.tweeterclone;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -13,6 +12,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.android.volley.Request;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.zakarialbouhmadi.tweeterclone.R;
+import com.zakarialbouhmadi.tweeterclone.util.SessionManager;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -99,3 +100,5 @@ public class LoginActivity extends AppCompatActivity {
         Volley.newRequestQueue(this).add(stringRequest);
     }
 }
+
+

@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 
+import com.zakarialbouhmadi.tweeterclone.activity.LoginActivity;
+
 public class SessionManager {
     private static final String PREF_NAME = "TwitterCloneSession";
     private static final String KEY_USER_ID = "user_id";
@@ -47,3 +49,4 @@ public class SessionManager {
         context.startActivity(intent);
     }
 }
+

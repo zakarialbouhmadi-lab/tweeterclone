@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -17,6 +18,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.android.volley.Request;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.bumptech.glide.Glide;
+import com.zakarialbouhmadi.tweeterclone.R;
+import com.zakarialbouhmadi.tweeterclone.activity.CommentsActivity;
+import com.zakarialbouhmadi.tweeterclone.model.Tweet;
+import com.zakarialbouhmadi.tweeterclone.util.SessionManager;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -82,6 +88,8 @@ public class TweetAdapter extends RecyclerView.Adapter<TweetAdapter.TweetViewHol
         private ImageButton buttonComment;
         private TextView textViewComments;
         private SessionManager sessionManager;
+        private ImageView imageViewTweet;
+
 
         public TweetViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -92,8 +100,8 @@ public class TweetAdapter extends RecyclerView.Adapter<TweetAdapter.TweetViewHol
             buttonComment = itemView.findViewById(R.id.buttonComment);
             textViewComments = itemView.findViewById(R.id.textViewComments);
             sessionManager = new SessionManager(itemView.getContext());
-            textViewDate = itemView.findViewById(R.id.textViewDate); // Add this
-
+            textViewDate = itemView.findViewById(R.id.textViewDate);
+            imageViewTweet = itemView.findViewById(R.id.imageViewTweet);
         }
 
 
@@ -191,22 +199,29 @@ public class TweetAdapter extends RecyclerView.Adapter<TweetAdapter.TweetViewHol
         }
 
         public void bind(Tweet tweet) {
-            // Set the text values
             textViewUsername.setText(tweet.getUsername());
             textViewContent.setText(tweet.getContent());
-textViewDate.setText(tweet.getFormattedDate());
-textViewLikes.setText(String.valueOf(tweet.getLikesCount()));
+            textViewDate.setText(tweet.getFormattedDate());
+            textViewLikes.setText(String.valueOf(tweet.getLikesCount()));
             textViewComments.setText(String.valueOf(tweet.getCommentsCount()));
 
-            // Set like button image based on whether user has liked
             buttonLike.setImageResource(tweet.isLiked() ?
                     android.R.drawable.star_big_on :
                     android.R.drawable.star_big_off);
 
-            // Set click listeners
+            // Handle image
+            if (tweet.getImage() != null && !tweet.getImage().isEmpty()) {
+                imageViewTweet.setVisibility(View.VISIBLE);
+                Glide.with(itemView.getContext())
+                        .load("https://blog.kraftsport.pl/api/twitter/images/tweets/" + tweet.getImage())
+                        .into(imageViewTweet);
+            } else {
+                imageViewTweet.setVisibility(View.GONE);
+            }
+
+            // Click listeners
             buttonLike.setOnClickListener(v -> likeTweet(tweet));
             buttonComment.setOnClickListener(v -> showComments(tweet));
-            // In bind method, add long click listener for delete:
             itemView.setOnLongClickListener(v -> {
                 if (tweet.getUserId() == sessionManager.getUserId()) {
                     showDeleteDialog(tweet, getAdapterPosition());
@@ -215,6 +230,6 @@ textViewLikes.setText(String.valueOf(tweet.getLikesCount()));
             });
         }
 
-
     }
 }
+

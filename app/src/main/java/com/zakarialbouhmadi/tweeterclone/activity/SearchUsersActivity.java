@@ -15,6 +15,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.android.volley.Request;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.zakarialbouhmadi.tweeterclone.R;
+import com.zakarialbouhmadi.tweeterclone.adapter.UserAdapter;
+import com.zakarialbouhmadi.tweeterclone.model.User;
+import com.zakarialbouhmadi.tweeterclone.util.FollowStatusListener;
+import com.zakarialbouhmadi.tweeterclone.util.SessionManager;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -40,6 +45,7 @@ public class SearchUsersActivity extends AppCompatActivity {
 
         // Initialize views
         Toolbar toolbar = findViewById(R.id.toolbar);
+        toolbar.setTitle("Search Users");
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
@@ -66,6 +72,16 @@ public class SearchUsersActivity extends AppCompatActivity {
         });
 
         // Load initial users
+        loadUsers();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        refreshUsers();
+    }
+
+    private void refreshUsers() {
         loadUsers();
     }
 
@@ -126,3 +142,4 @@ public class SearchUsersActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 }
+

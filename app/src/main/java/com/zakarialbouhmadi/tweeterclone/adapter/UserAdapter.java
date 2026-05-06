@@ -5,24 +5,22 @@ import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.json.JSONArray;
-import org.json.JSONObject;
 import org.json.JSONException;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.android.volley.Request;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
+import com.bumptech.glide.Glide;
+import com.zakarialbouhmadi.tweeterclone.R;
+import com.zakarialbouhmadi.tweeterclone.activity.ProfileActivity;
+import com.zakarialbouhmadi.tweeterclone.model.User;
+import com.zakarialbouhmadi.tweeterclone.util.SessionManager;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder> {
     private List<User> users = new ArrayList<>();
@@ -77,12 +75,15 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
         private TextView textViewFollowers;
         private TextView textViewFollowStatus;
         private User currentUser;
+        private ImageView imageViewProfilePic;
+
 
         public UserViewHolder(@NonNull View itemView) {
             super(itemView);
             textViewUsername = itemView.findViewById(R.id.textViewUsername);
             textViewFollowers = itemView.findViewById(R.id.textViewFollowers);
             textViewFollowStatus = itemView.findViewById(R.id.textViewFollowStatus);
+            imageViewProfilePic = itemView.findViewById(R.id.imageViewProfilePic);
 
             itemView.setOnClickListener(v -> {
                 if (currentUser != null) {
@@ -98,7 +99,19 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
             textViewUsername.setText(user.getUsername());
             textViewFollowers.setText(user.getFollowersCount() + " followers");
             textViewFollowStatus.setVisibility(user.isFollowing() ? View.VISIBLE : View.GONE);
+
+            if (!user.getProfilePic().isEmpty()) {
+                String imageUrl = "https://blog.kraftsport.pl/api/twitter/images/profile/" + user.getProfilePic();
+                Glide.with(itemView.getContext())
+                        .load(imageUrl)
+                        .placeholder(R.drawable.ic_launcher_foreground)
+                        .error(R.drawable.ic_launcher_foreground)
+                        .into(imageViewProfilePic);
+            } else {
+                imageViewProfilePic.setImageResource(R.drawable.ic_launcher_foreground);
+            }
         }
     }
 
 }
+

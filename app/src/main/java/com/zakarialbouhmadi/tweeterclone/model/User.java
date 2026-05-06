@@ -10,6 +10,9 @@ public class User {
     private int followersCount;
     private int followingCount;
     private boolean isFollowing;
+    private String profilePic;
+
+
 
     public User(JSONObject json) throws JSONException {
         this.id = json.getInt("user_id");
@@ -18,6 +21,7 @@ public class User {
         this.followersCount = json.optInt("followers_count", 0);
         this.followingCount = json.optInt("following_count", 0);
         this.isFollowing = json.optBoolean("is_following", false);
+        this.profilePic = json.optString("profile_pic", "");
     }
 
     // Getters
@@ -33,4 +37,8 @@ public class User {
         isFollowing = !isFollowing;
         followersCount += isFollowing ? 1 : -1;
     }
+
+    public String getProfilePic() { return profilePic; }
+
 }
+

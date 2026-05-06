@@ -16,6 +16,7 @@ public class Tweet {
     private int likesCount;
     private int commentsCount;
     private boolean isLiked;
+    private String image;
     private String createdAt;
     private String formattedDate;
 
@@ -28,7 +29,7 @@ public class Tweet {
             this.commentsCount = json.getInt("comments_count");
             this.isLiked = json.getBoolean("is_liked");
             this.createdAt = json.getString("created_at");
-
+            this.image = json.optString("image");
             // Format the date
             try {
                 SimpleDateFormat serverFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
@@ -38,7 +39,12 @@ public class Tweet {
             } catch (ParseException e) {
                 this.formattedDate = this.createdAt;
             }
+
         }
+
+
+        public String getImage() { return image; }
+
 
         public String getFormattedDate() {
             return formattedDate;
@@ -59,4 +65,6 @@ public class Tweet {
     public boolean isLiked() { return isLiked; }
     public String getCreatedAt() { return createdAt; }
 }
+
+
 

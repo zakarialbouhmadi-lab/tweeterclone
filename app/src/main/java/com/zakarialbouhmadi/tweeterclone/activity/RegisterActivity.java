@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.android.volley.Request;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.zakarialbouhmadi.tweeterclone.R;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -101,3 +102,4 @@ public class RegisterActivity extends AppCompatActivity {
         Volley.newRequestQueue(this).add(stringRequest);
     }
 }
+

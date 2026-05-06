@@ -1,23 +1,31 @@
 package com.zakarialbouhmadi.tweeterclone;
 
 
-import static com.zakarialbouhmadi.tweeterclone.TweetAdapter.LIKE_URL;
+import static com.zakarialbouhmadi.tweeterclone.adapter.TweetAdapter.LIKE_URL;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.util.Base64;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -26,13 +34,19 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.android.volley.Request;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.bumptech.glide.Glide;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.zakarialbouhmadi.tweeterclone.R;
+import com.zakarialbouhmadi.tweeterclone.adapter.TweetAdapter;
+import com.zakarialbouhmadi.tweeterclone.model.Tweet;
+import com.zakarialbouhmadi.tweeterclone.util.SessionManager;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -40,8 +54,10 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerViewTweets;
     private SwipeRefreshLayout swipeRefresh;
     private TweetAdapter tweetAdapter;
-    private  SessionManager sessionManager;
+    private SessionManager sessionManager;
     private static final String TWEETS_URL = "https://blog.kraftsport.pl/api/twitter/get_tweets.php";
+    private Uri selectedImageUri;
+    private static final int PICK_IMAGE_REQUEST = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +74,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Setup toolbar with logout option
         Toolbar toolbar = findViewById(R.id.toolbar);
+        toolbar.setTitle("News Feed");
         setSupportActionBar(toolbar);
 
         // Initialize views
@@ -86,6 +103,8 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
@@ -100,6 +119,14 @@ public class MainActivity extends AppCompatActivity {
             return true;
         } else if (id == R.id.action_logout) {
             sessionManager.logout();
+            return true;
+        }else if (item.getItemId() == R.id.action_theme) {
+            int currentMode = getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+            if (currentMode == Configuration.UI_MODE_NIGHT_YES) {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+            } else {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+            }
             return true;
         }
 
@@ -139,26 +166,63 @@ public class MainActivity extends AppCompatActivity {
         Volley.newRequestQueue(this).add(request);
     }
 
-
-
-    private void showCreateTweetDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        View view = getLayoutInflater().inflate(R.layout.dialog_create_tweet, null);
-        EditText editTextTweet = view.findViewById(R.id.editTextTweet);
-
-        builder.setView(view)
-                .setTitle("New Tweet")
-                .setPositiveButton("Tweet", (dialog, which) -> {
-                    String content = editTextTweet.getText().toString().trim();
-                    if (!content.isEmpty()) {
-                        createTweet(content);
-                    }
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
+    private void toggleTheme() {
+        // Follow system theme
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
     }
 
-    private void createTweet(String content) {
+        private void showCreateTweetDialog() {
+        View view = getLayoutInflater().inflate(R.layout.dialog_create_tweet, null);
+        EditText editTextTweet = view.findViewById(R.id.editTextTweet);
+        ImageView imagePreview = view.findViewById(R.id.imageViewPreview);
+        Button buttonAddImage = view.findViewById(R.id.buttonAddImage);
+
+        buttonAddImage.setOnClickListener(v -> {
+            Intent intent = new Intent();
+            intent.setType("image/*");
+            intent.setAction(Intent.ACTION_GET_CONTENT);
+            startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_REQUEST);
+        });
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setView(view)
+                .setTitle("New Tweet")
+                .setPositiveButton("Tweet", null) // Set to null initially
+                .setNegativeButton("Cancel", (dialog1, which) -> {
+                    selectedImageUri = null;
+                })
+                .create();
+
+        dialog.setOnShowListener(dialogInterface -> {
+            Button button = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+            button.setOnClickListener(v -> {
+                String content = editTextTweet.getText().toString().trim();
+                if (!content.isEmpty()) {
+                    createTweet(content, selectedImageUri);
+                    dialog.dismiss();
+                    selectedImageUri = null;
+                }
+            });
+        });
+
+        dialog.show();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK
+                && data != null && data.getData() != null) {
+            selectedImageUri = data.getData();
+            ImageView imagePreview = findViewById(R.id.imageViewPreview);
+            if (imagePreview != null) {
+                imagePreview.setVisibility(View.VISIBLE);
+                Glide.with(this).load(selectedImageUri).into(imagePreview);
+            }
+        }
+    }
+
+    private void createTweet(String content, Uri imageUri) {
         String CREATE_TWEET_URL = "https://blog.kraftsport.pl/api/twitter/create_tweet.php";
 
         StringRequest request = new StringRequest(Request.Method.POST, CREATE_TWEET_URL,
@@ -167,7 +231,7 @@ public class MainActivity extends AppCompatActivity {
                         JSONObject jsonResponse = new JSONObject(response);
                         if (jsonResponse.getBoolean("success")) {
                             Toast.makeText(this, "Tweet posted!", Toast.LENGTH_SHORT).show();
-                            loadTweets(); // Refresh the feed
+                            loadTweets();
                         } else {
                             Toast.makeText(this, "Error posting tweet", Toast.LENGTH_SHORT).show();
                         }
@@ -181,13 +245,27 @@ public class MainActivity extends AppCompatActivity {
                 Map<String, String> params = new HashMap<>();
                 params.put("content", content);
                 params.put("user_id", String.valueOf(sessionManager.getUserId()));
+
+                // Handle image if selected
+                if (imageUri != null) {
+                    try {
+                        Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), imageUri);
+                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        bitmap.compress(Bitmap.CompressFormat.JPEG, 70, baos);
+                        byte[] imageBytes = baos.toByteArray();
+                        String encodedImage = Base64.encodeToString(imageBytes, Base64.DEFAULT);
+                        params.put("image", encodedImage);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+
                 return params;
             }
         };
 
         Volley.newRequestQueue(this).add(request);
     }
-
 
 
 
@@ -284,3 +362,4 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 }
+
