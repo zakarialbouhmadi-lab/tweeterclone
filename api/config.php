@@ -1,6 +1,6 @@
 <?php
 // No whitespace before opening PHP tag
-define('DB_HOST', 'sql193.lh.pl');
+define('DB_HOST', '**************');
 define('DB_NAME', '**************');
 define('DB_USER', '**************');
 define('DB_PASS', '**************');
