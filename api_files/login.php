@@ -12,10 +12,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         exit();
     }
 
-    $api_key  = 'AIzaSyAmoURlho4X8vzkDfn7oVvPbf7F_pYeK1k';
-    $project  = 'tweeterclone-496100';
-    $site_key = '6LflauUsAAAAADnhveCokPOvE4Cq-OnxJlgl1dnc';
-    $url      = "https://recaptchaenterprise.googleapis.com/v1/projects/{$project}/assessments?key={$api_key}";
+    $api_key  = '*************';
+    $project  = '*************';
+    $site_key = '*************';
+    $url      = '*************';
 
     $body = json_encode([
         'event' => [
