@@ -1,4 +1,4 @@
-package com.zakarialbouhmadi.tweeterclone;
+package com.zakarialbouhmadi.tweeterclone.activity;
 
 import android.os.Bundle;
 import android.widget.Button;
@@ -29,8 +29,8 @@ public class CommentsActivity extends AppCompatActivity {
     private CommentAdapter commentAdapter;
     private SessionManager sessionManager;
     private int tweetId;
-    private static final String COMMENTS_URL = "https://blog.kraftsport.pl/api/twitter/get_comments.php";
-    private static final String POST_COMMENT_URL = "https://blog.kraftsport.pl/api/twitter/post_comment.php";
+    private static final String COMMENTS_URL = "https://tweeterclone.com.pl/api/get_comments.php";
+    private static final String POST_COMMENT_URL = "https://tweeterclone.com.pl/api/post_comment.php";
 
 
 

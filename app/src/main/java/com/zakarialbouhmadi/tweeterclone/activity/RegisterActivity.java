@@ -8,6 +8,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.volley.Request;
@@ -30,7 +31,7 @@ public class RegisterActivity extends AppCompatActivity {
     private TextView textViewLogin;
     private RecaptchaTasksClient recaptchaTasksClient;
     private static final String REGISTER_URL = "https://tweeterclone.com.pl/api/register.php";
-    private static final String SITE_KEY = "6LflauUsAAAAADnhveCokPOvE4Cq-OnxJlgl1dnc";
+    private static final String SITE_KEY     = "6LflauUsAAAAADnhveCokPOvE4Cq-OnxJlgl1dnc";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

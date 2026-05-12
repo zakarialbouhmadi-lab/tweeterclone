@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="?android:attr/colorBackground">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewComments"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@id/layoutAddComment" />
+        android:layout_above="@id/layoutAddComment"
+        android:background="?android:attr/colorBackground"/>
 
     <LinearLayout
         android:id="@+id/layoutAddComment"
@@ -16,7 +18,7 @@
         android:layout_alignParentBottom="true"
         android:orientation="horizontal"
         android:padding="8dp"
-        android:background="@android:color/white">
+        android:background="?attr/colorSurface">
 
         <EditText
             android:id="@+id/editTextComment"
@@ -25,12 +27,14 @@
             android:layout_weight="1"
             android:hint="Write a comment..."
             android:maxLines="4"
-            android:inputType="textMultiLine" />
+            android:inputType="textMultiLine"
+            android:textColor="?android:attr/textColorPrimary"
+            android:textColorHint="?android:attr/textColorSecondary"/>
 
         <Button
             android:id="@+id/buttonPostComment"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Post" />
+            android:text="Post"/>
     </LinearLayout>
 </RelativeLayout>

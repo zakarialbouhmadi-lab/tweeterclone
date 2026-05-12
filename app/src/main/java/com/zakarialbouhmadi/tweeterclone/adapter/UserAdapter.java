@@ -1,4 +1,4 @@
-package com.zakarialbouhmadi.tweeterclone;
+package com.zakarialbouhmadi.tweeterclone.adapter;
 
 import android.content.Context;
 import android.content.Intent;
@@ -14,6 +14,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.zakarialbouhmadi.tweeterclone.R;
 import com.zakarialbouhmadi.tweeterclone.activity.ProfileActivity;
 import com.zakarialbouhmadi.tweeterclone.model.User;
@@ -24,10 +25,12 @@ import java.util.List;
 
 public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder> {
     private List<User> users = new ArrayList<>();
-    protected static final String FOLLOW_URL = "https://blog.kraftsport.pl/api/twitter/follow.php";
+    protected static final String FOLLOW_URL = "https://tweeterclone.com.pl/api/follow.php";
     private SessionManager sessionManager;
+    private Context context;
 
     public UserAdapter(Context context) {
+        this.context = context;
         sessionManager = new SessionManager(context);
     }
 
@@ -55,20 +58,6 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
         notifyDataSetChanged();
     }
 
-    public void setUsers(JSONArray jsonUsers) {
-        List<User> newUsers = new ArrayList<>();
-        for (int i = 0; i < jsonUsers.length(); i++) {
-            try {
-                newUsers.add(new User(jsonUsers.getJSONObject(i)));
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
-        setUsers(newUsers);
-    }
-
-
-
 
     class UserViewHolder extends RecyclerView.ViewHolder {
         private TextView textViewUsername;
@@ -77,13 +66,12 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
         private User currentUser;
         private ImageView imageViewProfilePic;
 
-
         public UserViewHolder(@NonNull View itemView) {
             super(itemView);
             textViewUsername = itemView.findViewById(R.id.textViewUsername);
             textViewFollowers = itemView.findViewById(R.id.textViewFollowers);
             textViewFollowStatus = itemView.findViewById(R.id.textViewFollowStatus);
-            imageViewProfilePic = itemView.findViewById(R.id.imageViewProfilePic);
+            imageViewProfilePic = itemView.findViewById(R.id.imageViewProfile);
 
             itemView.setOnClickListener(v -> {
                 if (currentUser != null) {
@@ -98,20 +86,39 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
             this.currentUser = user;
             textViewUsername.setText(user.getUsername());
             textViewFollowers.setText(user.getFollowersCount() + " followers");
-            textViewFollowStatus.setVisibility(user.isFollowing() ? View.VISIBLE : View.GONE);
-
-            if (!user.getProfilePic().isEmpty()) {
-                String imageUrl = "https://blog.kraftsport.pl/api/twitter/images/profile/" + user.getProfilePic();
-                Glide.with(itemView.getContext())
-                        .load(imageUrl)
-                        .placeholder(R.drawable.ic_launcher_foreground)
-                        .error(R.drawable.ic_launcher_foreground)
-                        .into(imageViewProfilePic);
+            
+            // Update follow status display based on new follow_status field
+            String followStatus = user.getFollowStatus();
+            if (followStatus.equals("accepted")) {
+                textViewFollowStatus.setText("Following");
+                textViewFollowStatus.setTextColor(context.getResources().getColor(R.color.success));
+                textViewFollowStatus.setVisibility(View.VISIBLE);
+            } else if (followStatus.equals("pending")) {
+                textViewFollowStatus.setText("Requested");
+                textViewFollowStatus.setTextColor(context.getResources().getColor(R.color.warning));
+                textViewFollowStatus.setVisibility(View.VISIBLE);
             } else {
-                imageViewProfilePic.setImageResource(R.drawable.ic_launcher_foreground);
+                textViewFollowStatus.setVisibility(View.GONE);
+            }
+
+            // Load profile picture
+            if (imageViewProfilePic != null) {
+                String profilePic = user.getProfilePic();
+                if (profilePic != null && !profilePic.isEmpty()) {
+                    String imageUrl = "https://tweeterclone.com.pl/images/profile/" + profilePic;
+                    Glide.with(itemView.getContext())
+                            .load(imageUrl)
+                            .diskCacheStrategy(DiskCacheStrategy.ALL)
+                            .placeholder(R.drawable.ic_default_profile)
+                            .error(R.drawable.ic_default_profile)
+                            .into(imageViewProfilePic);
+                } else {
+                    // Clear any previous image and set default
+                    Glide.with(itemView.getContext())
+                            .clear(imageViewProfilePic);
+                    imageViewProfilePic.setImageResource(R.drawable.ic_default_profile);
+                }
             }
         }
     }
-
 }
-

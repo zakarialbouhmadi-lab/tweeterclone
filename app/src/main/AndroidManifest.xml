@@ -3,6 +3,11 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.CAMERA"
+        tools:ignore="PermissionImpliesUnsupportedChromeOsHardware" />
 
     <application
         android:allowBackup="true"
@@ -14,7 +19,7 @@
         android:usesCleartextTraffic="true">
 
         <activity
-            android:name=".LoginActivity"
+            android:name=".activity.LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -22,11 +27,17 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".MainActivity" />
-        <activity android:name=".RegisterActivity" />
-        <activity android:name=".SearchUsersActivity" />
-        <activity android:name=".ProfileActivity" />
-        <activity android:name=".CommentsActivity" />
+        <activity android:name=".activity.MainActivity" />
+        <activity android:name=".activity.RegisterActivity" />
+        <activity android:name=".activity.SearchUsersActivity" />
+        <activity android:name=".activity.ProfileActivity" />
+        <activity android:name=".activity.CommentsActivity" />
+        <activity android:name=".activity.FullscreenImageActivity"
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
+        <activity android:name=".activity.FollowRequestsActivity" />
+        <activity android:name=".activity.FollowListActivity" />
+        <activity android:name=".activity.ConversationsActivity" />
+        <activity android:name=".activity.ChatActivity" />
 
     </application>
 </manifest>

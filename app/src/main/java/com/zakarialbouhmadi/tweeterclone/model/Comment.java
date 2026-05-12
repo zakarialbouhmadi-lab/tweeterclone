@@ -1,4 +1,4 @@
-package com.zakarialbouhmadi.tweeterclone;
+package com.zakarialbouhmadi.tweeterclone.model;
 
 import org.json.JSONException;
 import org.json.JSONObject;

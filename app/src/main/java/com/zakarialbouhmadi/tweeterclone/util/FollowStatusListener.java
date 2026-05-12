@@ -1,4 +1,4 @@
-package com.zakarialbouhmadi.tweeterclone;
+package com.zakarialbouhmadi.tweeterclone.util;
 
 public interface FollowStatusListener {
     void onFollowStatusChanged();

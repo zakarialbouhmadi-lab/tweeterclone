@@ -1,19 +1,57 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.TweeterClone" parent="Theme.Material3.DayNight.NoActionBar">
-            <!-- Primary brand color. -->
-            <item name="colorPrimary">@color/purple_500</item>
-            <item name="colorPrimaryVariant">@color/purple_700</item>
-            <item name="colorOnPrimary">@color/gray</item>
-            <!-- Secondary brand color. -->
-            <item name="colorSecondary">@color/teal_200</item>
-            <item name="colorSecondaryVariant">@color/teal_700</item>
-            <item name="colorOnSecondary">@color/black</item>
-            <!-- Status bar color. -->
-            <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+    <!-- Light Theme -->
+    <style name="Base.Theme.TweeterClone" parent="Theme.Material3.Light.NoActionBar">
+        <!-- Primary brand color -->
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryVariant">@color/primary_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+        
+        <!-- Secondary brand color -->
+        <item name="colorSecondary">@color/accent</item>
+        <item name="colorSecondaryVariant">@color/primary_dark</item>
+        <item name="colorOnSecondary">@color/white</item>
+        
+        <!-- Background and surface -->
+        <item name="android:colorBackground">@color/background_light</item>
+        <item name="colorSurface">@color/background_light</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        
+        <!-- Status bar color -->
+        <item name="android:statusBarColor">@color/primary</item>
+        
+        <!-- Button styles -->
+        <item name="materialButtonStyle">@style/Widget.App.Button</item>
+        
+        <!-- Popup/Overflow menu -->
+        <item name="popupMenuStyle">@style/Widget.App.PopupMenu</item>
+        <item name="android:popupMenuStyle">@style/Widget.App.PopupMenu</item>
+        <item name="actionOverflowMenuStyle">@style/Widget.App.PopupMenu</item>
     </style>
 
-
-
     <style name="Theme.TweeterClone" parent="Base.Theme.TweeterClone" />
+    
+    <!-- Custom Button Style -->
+    <style name="Widget.App.Button" parent="Widget.Material3.Button">
+        <item name="android:textColor">@color/white</item>
+        <item name="backgroundTint">@color/primary</item>
+    </style>
+    
+    <!-- Popup Menu Style -->
+    <style name="Widget.App.PopupMenu" parent="Widget.Material3.PopupMenu">
+        <item name="android:popupBackground">@color/background_light</item>
+    </style>
+    
+    <!-- Toolbar popup theme -->
+    <style name="ThemeOverlay.App.Toolbar" parent="ThemeOverlay.Material3.ActionBar">
+        <item name="android:textColorPrimary">@color/white</item>
+        <item name="android:textColorSecondary">@color/white</item>
+        <item name="actionMenuTextColor">@color/white</item>
+    </style>
+    
+    <!-- Popup overlay for light theme -->
+    <style name="ThemeOverlay.App.PopupMenu" parent="ThemeOverlay.Material3.Light">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+    </style>
 </resources>

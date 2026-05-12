@@ -1,4 +1,4 @@
-package com.zakarialbouhmadi.tweeterclone;
+package com.zakarialbouhmadi.tweeterclone.adapter;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -78,7 +78,7 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
     }
 
     private void deleteComment(Comment comment, int position) {
-        String DELETE_COMMENT_URL = "https://blog.kraftsport.pl/api/twitter/delete_comment.php";
+        String DELETE_COMMENT_URL = "https://tweeterclone.com.pl/api/delete_comment.php";
 
         StringRequest request = new StringRequest(Request.Method.POST, DELETE_COMMENT_URL,
                 response -> {

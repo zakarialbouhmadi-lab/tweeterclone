@@ -1,16 +1,12 @@
-package com.zakarialbouhmadi.tweeterclone;
-
+package com.zakarialbouhmadi.tweeterclone.activity;
 
 import static com.zakarialbouhmadi.tweeterclone.adapter.TweetAdapter.LIKE_URL;
 
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
-import android.util.Base64;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -39,13 +35,13 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.zakarialbouhmadi.tweeterclone.R;
 import com.zakarialbouhmadi.tweeterclone.adapter.TweetAdapter;
 import com.zakarialbouhmadi.tweeterclone.model.Tweet;
+import com.zakarialbouhmadi.tweeterclone.util.ImagePickerHelper;
 import com.zakarialbouhmadi.tweeterclone.util.SessionManager;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -55,9 +51,11 @@ public class MainActivity extends AppCompatActivity {
     private SwipeRefreshLayout swipeRefresh;
     private TweetAdapter tweetAdapter;
     private SessionManager sessionManager;
-    private static final String TWEETS_URL = "https://blog.kraftsport.pl/api/twitter/get_tweets.php";
+    private static final String TWEETS_URL = "https://tweeterclone.com.pl/api/get_tweets.php";
     private Uri selectedImageUri;
     private static final int PICK_IMAGE_REQUEST = 1;
+    private AlertDialog currentDialog;
+    private ImageView dialogImagePreview;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -103,14 +101,18 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
         if (id == R.id.action_search) {
             startActivity(new Intent(this, SearchUsersActivity.class));
+            return true;
+        } else if (id == R.id.action_messages) {
+            startActivity(new Intent(this, ConversationsActivity.class));
+            return true;
+        } else if (id == R.id.action_follow_requests) {
+            startActivity(new Intent(this, FollowRequestsActivity.class));
             return true;
         } else if (id == R.id.action_profile) {
             Intent profileIntent = new Intent(this, ProfileActivity.class);
@@ -120,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
         } else if (id == R.id.action_logout) {
             sessionManager.logout();
             return true;
-        }else if (item.getItemId() == R.id.action_theme) {
+        } else if (item.getItemId() == R.id.action_theme) {
             int currentMode = getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
             if (currentMode == Configuration.UI_MODE_NIGHT_YES) {
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
@@ -133,7 +135,6 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-
     private void loadTweets() {
         String url = TWEETS_URL + "?user_id=" + sessionManager.getUserId();
 
@@ -145,7 +146,6 @@ public class MainActivity extends AppCompatActivity {
                         if (jsonResponse.getBoolean("success")) {
                             JSONArray tweets = jsonResponse.getJSONArray("tweets");
                             if (tweets.length() == 0) {
-                                // Show empty state message
                                 Toast.makeText(this,
                                         "No tweets yet. Follow some users to see their tweets!",
                                         Toast.LENGTH_LONG).show();
@@ -167,14 +167,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void toggleTheme() {
-        // Follow system theme
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
     }
 
-        private void showCreateTweetDialog() {
+    private void showCreateTweetDialog() {
         View view = getLayoutInflater().inflate(R.layout.dialog_create_tweet, null);
         EditText editTextTweet = view.findViewById(R.id.editTextTweet);
-        ImageView imagePreview = view.findViewById(R.id.imageViewPreview);
+        dialogImagePreview = view.findViewById(R.id.imageViewPreview);
         Button buttonAddImage = view.findViewById(R.id.buttonAddImage);
 
         buttonAddImage.setOnClickListener(v -> {
@@ -184,28 +183,30 @@ public class MainActivity extends AppCompatActivity {
             startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_REQUEST);
         });
 
-        AlertDialog dialog = new AlertDialog.Builder(this)
+        currentDialog = new AlertDialog.Builder(this)
                 .setView(view)
                 .setTitle("New Tweet")
-                .setPositiveButton("Tweet", null) // Set to null initially
+                .setPositiveButton("Tweet", null)
                 .setNegativeButton("Cancel", (dialog1, which) -> {
                     selectedImageUri = null;
+                    dialogImagePreview = null;
                 })
                 .create();
 
-        dialog.setOnShowListener(dialogInterface -> {
-            Button button = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+        currentDialog.setOnShowListener(dialogInterface -> {
+            Button button = currentDialog.getButton(AlertDialog.BUTTON_POSITIVE);
             button.setOnClickListener(v -> {
                 String content = editTextTweet.getText().toString().trim();
                 if (!content.isEmpty()) {
                     createTweet(content, selectedImageUri);
-                    dialog.dismiss();
+                    currentDialog.dismiss();
                     selectedImageUri = null;
+                    dialogImagePreview = null;
                 }
             });
         });
 
-        dialog.show();
+        currentDialog.show();
     }
 
     @Override
@@ -214,19 +215,82 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK
                 && data != null && data.getData() != null) {
             selectedImageUri = data.getData();
-            ImageView imagePreview = findViewById(R.id.imageViewPreview);
-            if (imagePreview != null) {
-                imagePreview.setVisibility(View.VISIBLE);
-                Glide.with(this).load(selectedImageUri).into(imagePreview);
+            if (dialogImagePreview != null) {
+                dialogImagePreview.setVisibility(View.VISIBLE);
+                Glide.with(this).load(selectedImageUri).into(dialogImagePreview);
             }
         }
     }
 
     private void createTweet(String content, Uri imageUri) {
-        String CREATE_TWEET_URL = "https://blog.kraftsport.pl/api/twitter/create_tweet.php";
+        String UPLOAD_IMAGE_URL = "https://tweeterclone.com.pl/api/upload_image.php";
+
+        if (imageUri != null) {
+            // Show progress
+            Toast.makeText(this, "Compressing and uploading image...", Toast.LENGTH_SHORT).show();
+            
+            // Compress and upload in background thread
+            new Thread(() -> {
+                try {
+                    // Use the new compression method for tweet images
+                    String encodedImage = ImagePickerHelper.compressTweetImage(getContentResolver(), imageUri);
+                    
+                    Log.d("TweetUpload", "Compressed image Base64 length: " + encodedImage.length());
+
+                    runOnUiThread(() -> {
+                        StringRequest uploadRequest = new StringRequest(Request.Method.POST, UPLOAD_IMAGE_URL,
+                                response -> {
+                                    Log.d("TweetUpload", "Upload response: " + response);
+                                    try {
+                                        JSONObject jsonResponse = new JSONObject(response);
+                                        if (jsonResponse.getBoolean("success")) {
+                                            String filename = jsonResponse.getString("filename");
+                                            postTweetWithImage(content, filename);
+                                        } else {
+                                            Toast.makeText(this, "Error uploading image", Toast.LENGTH_SHORT).show();
+                                        }
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                        Toast.makeText(this, "Error parsing upload response", Toast.LENGTH_SHORT).show();
+                                    }
+                                },
+                                error -> {
+                                    Log.e("TweetUpload", "Upload error: " + error.toString());
+                                    if (error.networkResponse != null) {
+                                        Log.e("TweetUpload", "Status: " + error.networkResponse.statusCode);
+                                    }
+                                    Toast.makeText(this, "Error uploading image", Toast.LENGTH_SHORT).show();
+                                }) {
+                            @Override
+                            protected Map<String, String> getParams() {
+                                Map<String, String> params = new HashMap<>();
+                                params.put("image", encodedImage);
+                                params.put("type", "tweet");
+                                return params;
+                            }
+                        };
+
+                        Volley.newRequestQueue(MainActivity.this).add(uploadRequest);
+                    });
+                } catch (IOException e) {
+                    runOnUiThread(() -> {
+                        Log.e("TweetUpload", "Image processing error: " + e.getMessage());
+                        Toast.makeText(this, "Error processing image", Toast.LENGTH_SHORT).show();
+                    });
+                    e.printStackTrace();
+                }
+            }).start();
+        } else {
+            postTweetWithImage(content, null);
+        }
+    }
+
+    private void postTweetWithImage(String content, String imageFilename) {
+        String CREATE_TWEET_URL = "https://tweeterclone.com.pl/api/create_tweet.php";
 
         StringRequest request = new StringRequest(Request.Method.POST, CREATE_TWEET_URL,
                 response -> {
+                    Log.d("TweetCreate", "Response: " + response);
                     try {
                         JSONObject jsonResponse = new JSONObject(response);
                         if (jsonResponse.getBoolean("success")) {
@@ -239,127 +303,22 @@ public class MainActivity extends AppCompatActivity {
                         e.printStackTrace();
                     }
                 },
-                error -> Toast.makeText(this, "Error posting tweet", Toast.LENGTH_SHORT).show()) {
+                error -> {
+                    Log.e("TweetCreate", "Error: " + error.toString());
+                    Toast.makeText(this, "Error posting tweet", Toast.LENGTH_SHORT).show();
+                }) {
             @Override
             protected Map<String, String> getParams() {
                 Map<String, String> params = new HashMap<>();
                 params.put("content", content);
                 params.put("user_id", String.valueOf(sessionManager.getUserId()));
-
-                // Handle image if selected
-                if (imageUri != null) {
-                    try {
-                        Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), imageUri);
-                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                        bitmap.compress(Bitmap.CompressFormat.JPEG, 70, baos);
-                        byte[] imageBytes = baos.toByteArray();
-                        String encodedImage = Base64.encodeToString(imageBytes, Base64.DEFAULT);
-                        params.put("image", encodedImage);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                if (imageFilename != null) {
+                    params.put("image", imageFilename);
                 }
-
                 return params;
             }
         };
 
         Volley.newRequestQueue(this).add(request);
     }
-
-
-
-    class TweetViewHolder extends RecyclerView.ViewHolder {
-        private TextView textViewUsername;
-        private TextView textViewContent;
-        private ImageButton buttonLike;
-        private TextView textViewLikes;
-        private ImageButton buttonComment;
-        private TextView textViewComments;
-        private SessionManager sessionManager;
-
-        public TweetViewHolder(@NonNull View itemView) {
-            super(itemView);
-            textViewUsername = itemView.findViewById(R.id.textViewUsername);
-            textViewContent = itemView.findViewById(R.id.textViewContent);
-            buttonLike = itemView.findViewById(R.id.buttonLike);
-            textViewLikes = itemView.findViewById(R.id.textViewLikes);
-            buttonComment = itemView.findViewById(R.id.buttonComment);
-            textViewComments = itemView.findViewById(R.id.textViewComments);
-            sessionManager = new SessionManager(itemView.getContext());
-        }
-
-        public void bind(Tweet tweet) {
-            // Set the text values
-            textViewUsername.setText(tweet.getUsername());
-            textViewContent.setText(tweet.getContent());
-            textViewLikes.setText(String.valueOf(tweet.getLikesCount()));
-            textViewComments.setText(String.valueOf(tweet.getCommentsCount()));
-
-            // Set like button image based on whether user has liked
-            buttonLike.setImageResource(tweet.isLiked() ?
-                    android.R.drawable.star_big_on :
-                    android.R.drawable.star_big_off);
-
-            // Set click listeners
-            buttonLike.setOnClickListener(v -> likeTweet(tweet));
-            buttonComment.setOnClickListener(v -> showComments(tweet));
-        }
-
-        private void likeTweet(Tweet tweet) {
-            Log.d("LikeDebug", "Attempting to like tweet: " + tweet.getId());
-            Log.d("LikeDebug", "User ID: " + sessionManager.getUserId());
-
-            StringRequest request = new StringRequest(Request.Method.POST, LIKE_URL,
-                    response -> {
-                        Log.d("LikeDebug", "Server response: " + response);
-                        try {
-                            JSONObject jsonResponse = new JSONObject(response);
-                            if (jsonResponse.getBoolean("success")) {
-                                tweet.toggleLike();
-                                buttonLike.setImageResource(tweet.isLiked() ?
-                                        android.R.drawable.star_big_on :
-                                        android.R.drawable.star_big_off);
-                                int newLikeCount = jsonResponse.getInt("likes_count");
-                                textViewLikes.setText(String.valueOf(newLikeCount));
-
-                                Toast.makeText(itemView.getContext(),
-                                        jsonResponse.getString("message"),
-                                        Toast.LENGTH_SHORT).show();
-                            } else {
-                                Toast.makeText(itemView.getContext(),
-                                        "Error: " + jsonResponse.getString("message"),
-                                        Toast.LENGTH_SHORT).show();
-                            }
-                        } catch (JSONException e) {
-                            Log.e("LikeDebug", "JSON parsing error: " + e.getMessage());
-                            e.printStackTrace();
-                        }
-                    },
-                    error -> {
-                        Log.e("LikeDebug", "Volley error: " + error.getMessage());
-                        Toast.makeText(itemView.getContext(),
-                                "Network error while liking tweet",
-                                Toast.LENGTH_SHORT).show();
-                    }) {
-                @Override
-                protected Map<String, String> getParams() {
-                    Map<String, String> params = new HashMap<>();
-                    params.put("tweet_id", String.valueOf(tweet.getId()));
-                    params.put("user_id", String.valueOf(sessionManager.getUserId()));
-                    return params;
-                }
-            };
-
-            Volley.newRequestQueue(itemView.getContext()).add(request);
-        }
-
-        private void showComments(Tweet tweet) {
-            Context context = itemView.getContext();
-            Intent intent = new Intent(context, CommentsActivity.class);
-            intent.putExtra("tweet_id", tweet.getId());
-            context.startActivity(intent);
-        }
-    }
 }
-

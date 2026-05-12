@@ -4,7 +4,8 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp"
-    android:gravity="center">
+    android:gravity="center"
+    android:background="?android:attr/colorBackground">
 
     <EditText
         android:id="@+id/editTextEmail"
@@ -12,6 +13,8 @@
         android:layout_height="wrap_content"
         android:hint="Email"
         android:inputType="textEmailAddress"
+        android:textColor="?android:attr/textColorPrimary"
+        android:textColorHint="?android:attr/textColorSecondary"
         android:layout_marginBottom="8dp"/>
 
     <EditText
@@ -20,6 +23,8 @@
         android:layout_height="wrap_content"
         android:hint="Password"
         android:inputType="textPassword"
+        android:textColor="?android:attr/textColorPrimary"
+        android:textColorHint="?android:attr/textColorSecondary"
         android:layout_marginBottom="16dp"/>
 
     <Button
@@ -34,6 +39,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="New user? Register here"
+        android:textColor="?attr/colorPrimary"
         android:clickable="true"
         android:focusable="true"/>
 </LinearLayout>

@@ -1,4 +1,4 @@
-package com.zakarialbouhmadi.tweeterclone;
+package com.zakarialbouhmadi.tweeterclone.activity;
 
 import android.os.Bundle;
 import android.text.Editable;
@@ -34,7 +34,7 @@ public class SearchUsersActivity extends AppCompatActivity {
     private UserAdapter userAdapter;
     private EditText editTextSearch;
     private List<User> allUsers = new ArrayList<>();
-    private static final String GET_USERS_URL = "https://blog.kraftsport.pl/api/twitter/get_users.php";
+    private static final String GET_USERS_URL = "https://tweeterclone.com.pl/api/get_users.php";
     static FollowStatusListener followStatusListener;
 
 
@@ -124,15 +124,6 @@ public class SearchUsersActivity extends AppCompatActivity {
 
         userAdapter.setUsers(filteredUsers);
     }
-
-    public static void setFollowStatusListener(FollowStatusListener listener) {
-        followStatusListener = listener;
-    }
-
-    public static void removeFollowStatusListener() {
-        followStatusListener = null;
-    }
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {

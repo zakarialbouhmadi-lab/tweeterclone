@@ -1,4 +1,4 @@
-package com.zakarialbouhmadi.tweeterclone;
+package com.zakarialbouhmadi.tweeterclone.adapter;
 
 import android.app.AlertDialog;
 import android.content.Context;
@@ -21,6 +21,8 @@ import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
 import com.zakarialbouhmadi.tweeterclone.R;
 import com.zakarialbouhmadi.tweeterclone.activity.CommentsActivity;
+import com.zakarialbouhmadi.tweeterclone.activity.FullscreenImageActivity;
+import com.zakarialbouhmadi.tweeterclone.activity.ProfileActivity;
 import com.zakarialbouhmadi.tweeterclone.model.Tweet;
 import com.zakarialbouhmadi.tweeterclone.util.SessionManager;
 
@@ -35,15 +37,20 @@ import java.util.Map;
 
 public class TweetAdapter extends RecyclerView.Adapter<TweetAdapter.TweetViewHolder> {
     private List<Tweet> tweets = new ArrayList<>();
-    public static final String LIKE_URL = "https://blog.kraftsport.pl/api/twitter/like_tweet.php";
+    public static final String LIKE_URL = "https://tweeterclone.com.pl/api/like_tweet.php";
     private SessionManager sessionManager;
     private Context context;
-
-
+    private boolean usernameClickable = true;
 
     public TweetAdapter(Context context) {
         this.context = context;
-        this.sessionManager=new SessionManager(context);
+        this.sessionManager = new SessionManager(context);
+    }
+
+    public TweetAdapter(Context context, boolean usernameClickable) {
+        this.context = context;
+        this.sessionManager = new SessionManager(context);
+        this.usernameClickable = usernameClickable;
     }
 
     @NonNull
@@ -77,8 +84,6 @@ public class TweetAdapter extends RecyclerView.Adapter<TweetAdapter.TweetViewHol
         notifyDataSetChanged();
     }
 
-
-
     class TweetViewHolder extends RecyclerView.ViewHolder {
         private TextView textViewDate;
         private TextView textViewUsername;
@@ -89,7 +94,7 @@ public class TweetAdapter extends RecyclerView.Adapter<TweetAdapter.TweetViewHol
         private TextView textViewComments;
         private SessionManager sessionManager;
         private ImageView imageViewTweet;
-
+        private ImageView imageViewProfilePic;
 
         public TweetViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -102,8 +107,8 @@ public class TweetAdapter extends RecyclerView.Adapter<TweetAdapter.TweetViewHol
             sessionManager = new SessionManager(itemView.getContext());
             textViewDate = itemView.findViewById(R.id.textViewDate);
             imageViewTweet = itemView.findViewById(R.id.imageViewTweet);
+            imageViewProfilePic = itemView.findViewById(R.id.imageViewProfilePic);
         }
-
 
         private void showDeleteDialog(Tweet tweet, int position) {
             new AlertDialog.Builder(context)
@@ -115,7 +120,7 @@ public class TweetAdapter extends RecyclerView.Adapter<TweetAdapter.TweetViewHol
         }
 
         private void deleteTweet(Tweet tweet, int position) {
-            String DELETE_TWEET_URL = "https://blog.kraftsport.pl/api/twitter/delete_tweet.php";
+            String DELETE_TWEET_URL = "https://tweeterclone.com.pl/api/delete_tweet.php";
 
             StringRequest request = new StringRequest(Request.Method.POST, DELETE_TWEET_URL,
                     response -> {
@@ -209,14 +214,57 @@ public class TweetAdapter extends RecyclerView.Adapter<TweetAdapter.TweetViewHol
                     android.R.drawable.star_big_on :
                     android.R.drawable.star_big_off);
 
-            // Handle image
+            // Load profile picture
+            if (imageViewProfilePic != null) {
+                if (tweet.getProfilePic() != null && !tweet.getProfilePic().isEmpty()) {
+                    String profileImageUrl = "https://tweeterclone.com.pl/images/profile/" + tweet.getProfilePic();
+                    Glide.with(itemView.getContext())
+                            .load(profileImageUrl)
+                            .placeholder(R.drawable.ic_default_profile)
+                            .error(R.drawable.ic_default_profile)
+                            .into(imageViewProfilePic);
+                } else {
+                    imageViewProfilePic.setImageResource(R.drawable.ic_default_profile);
+                }
+                
+                // Click profile picture to view profile
+                imageViewProfilePic.setOnClickListener(v -> {
+                    if (usernameClickable) {
+                        Intent intent = new Intent(itemView.getContext(), ProfileActivity.class);
+                        intent.putExtra("user_id", tweet.getUserId());
+                        itemView.getContext().startActivity(intent);
+                    }
+                });
+            }
+
+            // Handle tweet image
             if (tweet.getImage() != null && !tweet.getImage().isEmpty()) {
                 imageViewTweet.setVisibility(View.VISIBLE);
+                String imageUrl = "https://tweeterclone.com.pl/images/tweets/" + tweet.getImage();
                 Glide.with(itemView.getContext())
-                        .load("https://blog.kraftsport.pl/api/twitter/images/tweets/" + tweet.getImage())
+                        .load(imageUrl)
                         .into(imageViewTweet);
+                
+                // Click image to view fullscreen
+                imageViewTweet.setOnClickListener(v -> {
+                    Intent intent = new Intent(itemView.getContext(), FullscreenImageActivity.class);
+                    intent.putExtra("image_url", imageUrl);
+                    itemView.getContext().startActivity(intent);
+                });
             } else {
                 imageViewTweet.setVisibility(View.GONE);
+            }
+
+            // Click username to view profile (only if enabled)
+            if (usernameClickable) {
+                textViewUsername.setOnClickListener(v -> {
+                    Intent intent = new Intent(itemView.getContext(), ProfileActivity.class);
+                    intent.putExtra("user_id", tweet.getUserId());
+                    itemView.getContext().startActivity(intent);
+                });
+            } else {
+                textViewUsername.setOnClickListener(null);
+                textViewUsername.setClickable(false);
             }
 
             // Click listeners
@@ -229,7 +277,5 @@ public class TweetAdapter extends RecyclerView.Adapter<TweetAdapter.TweetViewHol
                 return true;
             });
         }
-
     }
 }
-

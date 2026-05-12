@@ -9,14 +9,32 @@
         app:showAsAction="ifRoom" />
 
     <item
+        android:id="@+id/action_messages"
+        android:icon="@android:drawable/sym_action_email"
+        android:title="Messages"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_follow_requests"
+        android:title="Follow Requests"
+        android:orderInCategory="98"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_profile"
         android:title="My Profile"
         android:orderInCategory="99"
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/action_theme"
+        android:title="Theme"
+        android:orderInCategory="100"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_logout"
         android:title="Logout"
-        android:orderInCategory="100"
+        android:orderInCategory="101"
         app:showAsAction="never" />
 </menu>

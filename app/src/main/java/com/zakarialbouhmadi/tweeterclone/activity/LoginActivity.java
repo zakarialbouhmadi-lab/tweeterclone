@@ -18,6 +18,7 @@ import com.google.android.recaptcha.Recaptcha;
 import com.google.android.recaptcha.RecaptchaAction;
 import com.google.android.recaptcha.RecaptchaTasksClient;
 import com.zakarialbouhmadi.tweeterclone.R;
+import com.zakarialbouhmadi.tweeterclone.util.E2EEManager;
 import com.zakarialbouhmadi.tweeterclone.util.SessionManager;
 
 import org.json.JSONException;
@@ -33,8 +34,9 @@ public class LoginActivity extends AppCompatActivity {
     private SessionManager sessionManager;
     private TextView textViewRegister;
     private RecaptchaTasksClient recaptchaTasksClient;
-    private static final String LOGIN_URL = "https://tweeterclone.com.pl/api/login.php";
-    private static final String SITE_KEY = "6LflauUsAAAAADnhveCokPOvE4Cq-OnxJlgl1dnc";
+    private static final String LOGIN_URL            = "https://tweeterclone.com.pl/api/login.php";
+    private static final String STORE_PUBLIC_KEY_URL = "https://tweeterclone.com.pl/api/store_public_key.php";
+    private static final String SITE_KEY             = "6LflauUsAAAAADnhveCokPOvE4Cq-OnxJlgl1dnc";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -119,6 +121,7 @@ public class LoginActivity extends AppCompatActivity {
                             int userId = jsonResponse.getInt("user_id");
                             String username = jsonResponse.getString("username");
                             sessionManager.createSession(userId, username);
+                            setupE2EEKeys(userId);
                             startActivity(new Intent(LoginActivity.this, MainActivity.class));
                             finish();
                         } else {
@@ -151,5 +154,32 @@ public class LoginActivity extends AppCompatActivity {
         };
 
         Volley.newRequestQueue(this).add(stringRequest);
+    }
+
+    private void setupE2EEKeys(int userId) {
+        new Thread(() -> {
+            try {
+                E2EEManager.generateKeyPairIfNeeded(userId);
+                String publicKey = E2EEManager.getPublicKeyBase64(userId);
+                runOnUiThread(() -> uploadPublicKey(userId, publicKey));
+            } catch (Exception e) {
+                Log.e(TAG, "E2EE key setup failed", e);
+            }
+        }).start();
+    }
+
+    private void uploadPublicKey(int userId, String publicKey) {
+        StringRequest request = new StringRequest(Request.Method.POST, STORE_PUBLIC_KEY_URL,
+                response -> Log.d(TAG, "Public key upload response: " + response),
+                error -> Log.e(TAG, "Public key upload failed: " + error)) {
+            @Override
+            protected Map<String, String> getParams() {
+                Map<String, String> params = new HashMap<>();
+                params.put("user_id", String.valueOf(userId));
+                params.put("public_key", publicKey);
+                return params;
+            }
+        };
+        Volley.newRequestQueue(this).add(request);
     }
 }
