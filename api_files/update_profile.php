@@ -17,6 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if($check_stmt->get_result()->num_rows > 0) {
         $response['success'] = false;
         $response['message'] = "Username already taken";
+        log_warn('update_profile', "Username taken - user_id:{$user_id} attempted_username:{$username}");
         echo json_encode($response);
         exit();
     }
@@ -27,13 +28,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ($stmt->execute()) {
         $response['success'] = true;
         $response['message'] = "Profile updated successfully";
+        log_info('update_profile', "Profile updated - user_id:{$user_id} username:{$username} is_public:{$is_public}");
     } else {
         $response['success'] = false;
         $response['message'] = "Error updating profile";
+        log_error('update_profile', "DB update failed - user_id:{$user_id}");
     }
 } else {
     $response['success'] = false;
     $response['message'] = "Invalid request method";
+    log_warn('update_profile', "Invalid request method: " . $_SERVER['REQUEST_METHOD']);
 }
 
 echo json_encode($response);

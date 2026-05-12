@@ -54,6 +54,7 @@ try {
     $response['tweets'] = $tweets;
 
 } catch (Exception $e) {
+    log_error('get_tweets', "Error - user_id:{$user_id} msg:" . $e->getMessage());
     $response['success'] = false;
     $response['message'] = "Error: " . $e->getMessage();
 }

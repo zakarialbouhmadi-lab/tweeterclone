@@ -12,10 +12,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         exit();
     }
 
-    $api_key  = '*************';
-    $project  = '*************';
-    $site_key = '*************';
-    $url      = '*************';
+    $api_key  = 'AIzaSyAmoURlho4X8vzkDfn7oVvPbf7F_pYeK1k';
+    $project  = 'tweeterclone-496100';
+    $site_key = '6LflauUsAAAAADnhveCokPOvE4Cq-OnxJlgl1dnc';
+    $url      = "https://recaptchaenterprise.googleapis.com/v1/projects/{$project}/assessments?key={$api_key}";
 
     $body = json_encode([
         'event' => [
@@ -25,10 +25,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         ]
     ]);
 
-    $opts   = ['http' => ['method' => 'POST', 'header' => 'Content-Type: application/json', 'content' => $body]];
-    $result = json_decode(file_get_contents($url, false, stream_context_create($opts)), true);
+    $opts      = ['http' => ['method' => 'POST', 'header' => 'Content-Type: application/json', 'content' => $body, 'ignore_errors' => true]];
+    $rawResult = @file_get_contents($url, false, stream_context_create($opts));
+    $result    = ($rawResult !== false) ? json_decode($rawResult, true) : null;
 
-    if (empty($result['tokenProperties']['valid']) || $result['riskAnalysis']['score'] < 0.5) {
+    if (!$result || empty($result['tokenProperties']['valid']) || ($result['riskAnalysis']['score'] ?? 0) < 0.3) {
+        $score = $result['riskAnalysis']['score'] ?? 'N/A';
+        log_warn('login', "reCAPTCHA failed - score:{$score}");
         echo json_encode(['success' => false, 'message' => 'Security check failed. Please try again.']);
         exit();
     }
@@ -48,13 +51,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $response['user_id']  = $user['user_id'];
             $response['username'] = $user['username'];
             $response['message']  = "Login successful";
+            log_info('login', "Login successful - user_id:{$user['user_id']} username:{$user['username']}");
         } else {
             $response['success'] = false;
             $response['message'] = "Invalid password";
+            log_warn('login', "Invalid password for email:{$email}");
         }
     } else {
         $response['success'] = false;
         $response['message'] = "User not found";
+        log_warn('login', "User not found for email:{$email}");
     }
 } else {
     $response['success'] = false;

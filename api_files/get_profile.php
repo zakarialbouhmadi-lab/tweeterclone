@@ -103,6 +103,7 @@ try {
     );
 
 } catch (Exception $e) {
+    log_error('get_profile', "Error - user_id:{$user_id} current_user_id:{$current_user_id} msg:" . $e->getMessage());
     $response = array(
         'success' => false,
         'message' => $e->getMessage()

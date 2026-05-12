@@ -29,6 +29,7 @@ try {
     $response['can_message'] = $is_mutual;
 
 } catch (Exception $e) {
+    log_error('check_mutual_follow', "Error - user_id:{$user_id} other_user_id:{$other_user_id} msg:" . $e->getMessage());
     $response['success'] = false;
     $response['message'] = "Error: " . $e->getMessage();
 }

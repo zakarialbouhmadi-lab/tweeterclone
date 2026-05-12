@@ -5,8 +5,6 @@ require_once 'config.php';
 $response = array();
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Debug received data
-    error_log("Received POST data for like: " . print_r($_POST, true));
 
     $tweet_id = $_POST['tweet_id'];
     $user_id = $_POST['user_id'];
@@ -30,24 +28,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     if ($stmt->execute()) {
-        // Get updated like count
         $count_stmt = $conn->prepare("SELECT COUNT(*) as count FROM likes WHERE tweet_id = ?");
         $count_stmt->bind_param("i", $tweet_id);
         $count_stmt->execute();
-        $count_result = $count_stmt->get_result();
-        $count_row = $count_result->fetch_assoc();
+        $count_row = $count_stmt->get_result()->fetch_assoc();
 
         $response['success'] = true;
         $response['action'] = $action;
         $response['likes_count'] = $count_row['count'];
         $response['message'] = "Tweet " . $action;
+        log_info('like_tweet', "Tweet {$action} - user_id:{$user_id} tweet_id:{$tweet_id} total_likes:{$count_row['count']}");
     } else {
         $response['success'] = false;
         $response['message'] = "Error processing like";
+        log_error('like_tweet', "DB error - user_id:{$user_id} tweet_id:{$tweet_id}");
     }
 } else {
     $response['success'] = false;
     $response['message'] = "Invalid request method";
+    log_warn('like_tweet', "Invalid request method: " . $_SERVER['REQUEST_METHOD']);
 }
 
 echo json_encode($response);

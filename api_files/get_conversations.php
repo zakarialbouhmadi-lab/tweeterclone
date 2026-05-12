@@ -20,6 +20,7 @@ try {
         (SELECT content FROM messages WHERE conversation_id = c.conversation_id ORDER BY created_at DESC LIMIT 1) as last_message,
         (SELECT created_at FROM messages WHERE conversation_id = c.conversation_id ORDER BY created_at DESC LIMIT 1) as last_message_time,
         (SELECT sender_id FROM messages WHERE conversation_id = c.conversation_id ORDER BY created_at DESC LIMIT 1) as last_sender_id,
+        (SELECT CASE WHEN sender_id = ? THEN encrypted_key_for_sender ELSE encrypted_key_for_receiver END FROM messages WHERE conversation_id = c.conversation_id ORDER BY created_at DESC LIMIT 1) as last_message_encrypted_key,
         (SELECT COUNT(*) FROM messages WHERE conversation_id = c.conversation_id AND sender_id != ? AND is_read = 0) as unread_count
     FROM conversations c
     JOIN users u ON u.user_id = CASE WHEN c.user1_id = ? THEN c.user2_id ELSE c.user1_id END
@@ -28,7 +29,7 @@ try {
     ";
 
     $stmt = $conn->prepare($query);
-    $stmt->bind_param("iiiii", $user_id, $user_id, $user_id, $user_id, $user_id);
+    $stmt->bind_param("iiiiii", $user_id, $user_id, $user_id, $user_id, $user_id, $user_id);
     $stmt->execute();
     $result = $stmt->get_result();
 
@@ -42,6 +43,7 @@ try {
                 'other_username' => $row['other_username'],
                 'other_profile_pic' => $row['other_profile_pic'] ?? '',
                 'last_message' => $row['last_message'],
+                'last_message_encrypted_key' => $row['last_message_encrypted_key'] ?? '',
                 'last_message_time' => $row['last_message_time'],
                 'last_sender_id' => (int)$row['last_sender_id'],
                 'unread_count' => (int)$row['unread_count']

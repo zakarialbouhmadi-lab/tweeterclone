@@ -26,6 +26,7 @@ try {
     $response['unread_count'] = (int)$row['unread_count'];
 
 } catch (Exception $e) {
+    log_error('get_unread_count', "Error - user_id:{$user_id} msg:" . $e->getMessage());
     $response['success'] = false;
     $response['message'] = "Error: " . $e->getMessage();
 }

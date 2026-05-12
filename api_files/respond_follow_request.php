@@ -18,33 +18,36 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     try {
         if ($action == 'accept') {
-            // Update status to accepted
             $stmt = $conn->prepare("UPDATE follows SET status = 'accepted' WHERE follower_id = ? AND following_id = ? AND status = 'pending'");
             $stmt->bind_param("ii", $follower_id, $following_id);
-            
+
             if ($stmt->execute() && $stmt->affected_rows > 0) {
                 $response['success'] = true;
                 $response['message'] = "Follow request accepted";
+                log_info('follow_request', "Accepted - follower_id:{$follower_id} following_id:{$following_id}");
             } else {
                 $response['success'] = false;
                 $response['message'] = "No pending request found";
+                log_warn('follow_request', "Accept failed (no pending) - follower_id:{$follower_id} following_id:{$following_id}");
             }
         } else {
-            // Delete the follow request (decline)
             $stmt = $conn->prepare("DELETE FROM follows WHERE follower_id = ? AND following_id = ? AND status = 'pending'");
             $stmt->bind_param("ii", $follower_id, $following_id);
-            
+
             if ($stmt->execute() && $stmt->affected_rows > 0) {
                 $response['success'] = true;
                 $response['message'] = "Follow request declined";
+                log_info('follow_request', "Declined - follower_id:{$follower_id} following_id:{$following_id}");
             } else {
                 $response['success'] = false;
                 $response['message'] = "No pending request found";
+                log_warn('follow_request', "Decline failed (no pending) - follower_id:{$follower_id} following_id:{$following_id}");
             }
         }
     } catch (Exception $e) {
         $response['success'] = false;
         $response['message'] = "Error: " . $e->getMessage();
+        log_error('follow_request', "Exception - follower_id:{$follower_id} following_id:{$following_id} msg:" . $e->getMessage());
     }
 } else {
     $response['success'] = false;

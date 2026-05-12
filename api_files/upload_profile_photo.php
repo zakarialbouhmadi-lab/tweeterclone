@@ -27,10 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     $write_result = file_put_contents($upload_path, $image_data);
     if ($write_result !== false) {
-        // Set correct permissions
         chmod($upload_path, 0644);
-
-        // Update database
         $stmt = $conn->prepare("UPDATE users SET profile_pic = ? WHERE user_id = ?");
         $stmt->bind_param("si", $filename, $user_id);
 
@@ -38,18 +35,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $response['success'] = true;
             $response['message'] = "Profile photo updated successfully";
             $response['image_url'] = 'https://tweeterclone.com.pl/images/profile/' . $filename;
+            log_info('upload_profile_photo', "Photo updated - user_id:{$user_id} file:{$filename}");
         } else {
             $response['success'] = false;
             $response['message'] = "Error updating database";
+            log_error('upload_profile_photo', "DB update failed - user_id:{$user_id} file:{$filename}");
         }
         $stmt->close();
     } else {
         $response['success'] = false;
         $response['message'] = "Error saving image file";
+        log_error('upload_profile_photo', "File write failed - user_id:{$user_id} path:{$upload_path}");
     }
 } else {
     $response['success'] = false;
     $response['message'] = "Invalid request method";
+    log_warn('upload_profile_photo', "Invalid request method: " . $_SERVER['REQUEST_METHOD']);
 }
 
 echo json_encode($response);

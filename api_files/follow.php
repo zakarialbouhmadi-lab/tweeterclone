@@ -46,26 +46,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     if ($stmt->execute()) {
-        // Get updated follower count (only accepted follows)
         $count_stmt = $conn->prepare("SELECT COUNT(*) as count FROM follows WHERE following_id = ? AND status = 'accepted'");
         $count_stmt->bind_param("i", $following_id);
         $count_stmt->execute();
-        $count_result = $count_stmt->get_result();
-        $count_row = $count_result->fetch_assoc();
+        $count_row = $count_stmt->get_result()->fetch_assoc();
 
         $response['success'] = true;
         $response['follow_status'] = $follow_status;
-        // Keep is_following for backward compatibility
         $response['is_following'] = ($follow_status == 'accepted');
         $response['followers_count'] = $count_row['count'];
         $response['message'] = $message;
+        log_info('follow', "{$message} - follower_id:{$follower_id} following_id:{$following_id} status:{$follow_status}");
     } else {
         $response['success'] = false;
         $response['message'] = "Error updating follow status";
+        log_error('follow', "DB error - follower_id:{$follower_id} following_id:{$following_id}");
     }
 } else {
     $response['success'] = false;
     $response['message'] = "Invalid request method";
+    log_warn('follow', "Invalid request method: " . $_SERVER['REQUEST_METHOD']);
 }
 
 echo json_encode($response);

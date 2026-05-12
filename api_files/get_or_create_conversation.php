@@ -26,6 +26,7 @@ try {
         $response['success'] = false;
         $response['can_message'] = false;
         $response['message'] = "Cannot message: mutual follow required";
+        log_warn('get_or_create_conversation', "No mutual follow - user_id:{$user_id} other_user_id:{$other_user_id}");
         echo json_encode($response);
         exit();
     }
@@ -42,12 +43,13 @@ try {
 
     if ($conv_result->num_rows > 0) {
         $conversation_id = $conv_result->fetch_assoc()['conversation_id'];
+        log_info('get_or_create_conversation', "Existing conversation - user_id:{$user_id} other_user_id:{$other_user_id} conversation_id:{$conversation_id}");
     } else {
-        // Create new conversation
         $create_conv = $conn->prepare("INSERT INTO conversations (user1_id, user2_id) VALUES (?, ?)");
         $create_conv->bind_param("ii", $user1, $user2);
         $create_conv->execute();
         $conversation_id = $conn->insert_id;
+        log_info('get_or_create_conversation', "New conversation created - user_id:{$user_id} other_user_id:{$other_user_id} conversation_id:{$conversation_id}");
     }
 
     // Get other user info
@@ -67,6 +69,7 @@ try {
     );
 
 } catch (Exception $e) {
+    log_error('get_or_create_conversation', "Error - user_id:{$user_id} other_user_id:{$other_user_id} msg:" . $e->getMessage());
     $response['success'] = false;
     $response['message'] = "Error: " . $e->getMessage();
 }

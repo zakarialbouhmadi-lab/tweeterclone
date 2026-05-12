@@ -16,6 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if($result->fetch_assoc()['user_id'] != $user_id) {
         $response['success'] = false;
         $response['message'] = "Unauthorized to delete this tweet";
+        log_warn('delete_tweet', "Unauthorized delete attempt - user_id:{$user_id} tweet_id:{$tweet_id}");
         echo json_encode($response);
         exit();
     }
@@ -36,13 +37,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ($stmt->execute()) {
         $response['success'] = true;
         $response['message'] = "Tweet deleted successfully";
+        log_info('delete_tweet', "Tweet deleted - user_id:{$user_id} tweet_id:{$tweet_id}");
     } else {
         $response['success'] = false;
         $response['message'] = "Error deleting tweet";
+        log_error('delete_tweet', "DB delete failed - user_id:{$user_id} tweet_id:{$tweet_id}");
     }
 } else {
     $response['success'] = false;
     $response['message'] = "Invalid request method";
+    log_warn('delete_tweet', "Invalid request method: " . $_SERVER['REQUEST_METHOD']);
 }
 
 echo json_encode($response);

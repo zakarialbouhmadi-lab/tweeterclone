@@ -32,6 +32,7 @@ try {
     $response['comments'] = $comments;
 
 } catch (Exception $e) {
+    log_error('get_comments', "Error - tweet_id:{$tweet_id} msg:" . $e->getMessage());
     $response['success'] = false;
     $response['message'] = "Error: " . $e->getMessage();
 }

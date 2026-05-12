@@ -40,6 +40,7 @@ try {
     $response['count'] = count($requests);
 
 } catch (Exception $e) {
+    log_error('get_follow_requests', "Error - user_id:{$user_id} msg:" . $e->getMessage());
     $response['success'] = false;
     $response['message'] = "Error: " . $e->getMessage();
 }

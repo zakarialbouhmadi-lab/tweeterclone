@@ -16,6 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if($result->fetch_assoc()['user_id'] != $user_id) {
         $response['success'] = false;
         $response['message'] = "Unauthorized to delete this comment";
+        log_warn('delete_comment', "Unauthorized delete attempt - user_id:{$user_id} comment_id:{$comment_id}");
         echo json_encode($response);
         exit();
     }
@@ -27,13 +28,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ($stmt->execute()) {
         $response['success'] = true;
         $response['message'] = "Comment deleted successfully";
+        log_info('delete_comment', "Comment deleted - user_id:{$user_id} comment_id:{$comment_id}");
     } else {
         $response['success'] = false;
         $response['message'] = "Error deleting comment";
+        log_error('delete_comment', "DB delete failed - user_id:{$user_id} comment_id:{$comment_id}");
     }
 } else {
     $response['success'] = false;
     $response['message'] = "Invalid request method";
+    log_warn('delete_comment', "Invalid request method: " . $_SERVER['REQUEST_METHOD']);
 }
 
 echo json_encode($response);
