@@ -2,6 +2,7 @@ package com.zakarialbouhmadi.tweeterclone.activity;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Patterns;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -12,6 +13,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.android.volley.Request;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.android.recaptcha.Recaptcha;
+import com.google.android.recaptcha.RecaptchaAction;
+import com.google.android.recaptcha.RecaptchaTasksClient;
 import com.zakarialbouhmadi.tweeterclone.R;
 
 import org.json.JSONException;
@@ -24,7 +28,9 @@ public class RegisterActivity extends AppCompatActivity {
     private EditText editTextUsername, editTextEmail, editTextPassword, editTextConfirmPassword;
     private Button buttonRegister;
     private TextView textViewLogin;
+    private RecaptchaTasksClient recaptchaTasksClient;
     private static final String REGISTER_URL = "https://tweeterclone.com.pl/api/register.php";
+    private static final String SITE_KEY = "6LflauUsAAAAADnhveCokPOvE4Cq-OnxJlgl1dnc";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,30 +46,82 @@ public class RegisterActivity extends AppCompatActivity {
 
         buttonRegister.setOnClickListener(v -> registerUser());
         textViewLogin.setOnClickListener(v -> finish());
+
+        Recaptcha.fetchTaskClient(getApplication(), SITE_KEY)
+                .addOnSuccessListener(this, client -> recaptchaTasksClient = client)
+                .addOnFailureListener(this, e ->
+                        Toast.makeText(this, "Security check unavailable", Toast.LENGTH_SHORT).show());
     }
+
+    private boolean isValidEmail(String email) {
+        return Patterns.EMAIL_ADDRESS.matcher(email).matches();
+    }
+
+    private String getPasswordError(String password) {
+        if (password.length() < 8)
+            return "Password must be at least 8 characters";
+        if (!password.matches(".*[A-Z].*"))
+            return "Password must contain at least one uppercase letter";
+        if (!password.matches(".*[a-z].*"))
+            return "Password must contain at least one lowercase letter";
+        if (!password.matches(".*[0-9].*"))
+            return "Password must contain at least one digit";
+        if (!password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?].*"))
+            return "Password must contain at least one special character";
+        return null;
+    }
+
     private void registerUser() {
         String username = editTextUsername.getText().toString().trim();
         String email = editTextEmail.getText().toString().trim();
         String password = editTextPassword.getText().toString().trim();
         String confirmPassword = editTextConfirmPassword.getText().toString().trim();
 
-        // Debug log
-        Log.d("RegisterActivity", "Attempting registration with: " + email);
-
-        // Validation
         if (username.isEmpty() || email.isEmpty() || password.isEmpty()) {
             Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        if (!password.equals(confirmPassword)) {
-            Toast.makeText(this, "Passwords don't match", Toast.LENGTH_SHORT).show();
+        if (!isValidEmail(email)) {
+            editTextEmail.setError("Invalid email address");
+            editTextEmail.requestFocus();
             return;
         }
 
+        String passwordError = getPasswordError(password);
+        if (passwordError != null) {
+            editTextPassword.setError(passwordError);
+            editTextPassword.requestFocus();
+            return;
+        }
+
+        if (!password.equals(confirmPassword)) {
+            editTextConfirmPassword.setError("Passwords don't match");
+            editTextConfirmPassword.requestFocus();
+            return;
+        }
+
+        if (recaptchaTasksClient == null) {
+            Toast.makeText(this, "Security check not ready. Please try again.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        buttonRegister.setEnabled(false);
+
+        recaptchaTasksClient.executeTask(RecaptchaAction.SIGNUP)
+                .addOnSuccessListener(this, token -> sendRegisterRequest(username, email, password, token))
+                .addOnFailureListener(this, e -> {
+                    buttonRegister.setEnabled(true);
+                    Toast.makeText(this, "Security check failed. Please try again.", Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private void sendRegisterRequest(String username, String email, String password, String recaptchaToken) {
+        Log.d("RegisterActivity", "Attempting registration with: " + email);
+
         StringRequest stringRequest = new StringRequest(Request.Method.POST, REGISTER_URL,
                 response -> {
-                    // Debug log
+                    buttonRegister.setEnabled(true);
                     Log.d("RegisterActivity", "Server Response: " + response);
                     try {
                         JSONObject jsonResponse = new JSONObject(response);
@@ -83,7 +141,7 @@ public class RegisterActivity extends AppCompatActivity {
                     }
                 },
                 error -> {
-                    // Debug log
+                    buttonRegister.setEnabled(true);
                     Log.e("RegisterActivity", "Volley Error: " + error.toString());
                     Toast.makeText(RegisterActivity.this,
                             "Connection error: " + error.getMessage(),
@@ -95,6 +153,7 @@ public class RegisterActivity extends AppCompatActivity {
                 params.put("username", username);
                 params.put("email", email);
                 params.put("password", password);
+                params.put("recaptcha_token", recaptchaToken);
                 return params;
             }
         };
@@ -102,4 +161,3 @@ public class RegisterActivity extends AppCompatActivity {
         Volley.newRequestQueue(this).add(stringRequest);
     }
 }
-
