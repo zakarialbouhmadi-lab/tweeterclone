@@ -2,10 +2,10 @@
 // No whitespace before opening PHP tag
 require_once __DIR__ . '/logger.php';
 
-define('DB_HOST', 'sql193.lh.pl');
-define('DB_NAME', 'serwer440925_blog');
-define('DB_USER', 'serwer440925_blog');
-define('DB_PASS', 'B3rgsportsmierdz!');
+define('DB_HOST', '******************');
+define('DB_NAME', '******************');
+define('DB_USER', '******************');
+define('DB_PASS', '******************');
 
 $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 $conn->set_charset('utf8mb4');
