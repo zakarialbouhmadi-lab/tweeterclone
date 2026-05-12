@@ -4,13 +4,16 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp"
-    android:gravity="center">
+    android:gravity="center"
+    android:background="?android:attr/colorBackground">
 
     <EditText
         android:id="@+id/editTextUsername"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Username"
+        android:textColor="?android:attr/textColorPrimary"
+        android:textColorHint="?android:attr/textColorSecondary"
         android:layout_marginBottom="8dp"/>
 
     <EditText
@@ -19,6 +22,8 @@
         android:layout_height="wrap_content"
         android:hint="Email"
         android:inputType="textEmailAddress"
+        android:textColor="?android:attr/textColorPrimary"
+        android:textColorHint="?android:attr/textColorSecondary"
         android:layout_marginBottom="8dp"/>
 
     <EditText
@@ -27,6 +32,17 @@
         android:layout_height="wrap_content"
         android:hint="Password"
         android:inputType="textPassword"
+        android:textColor="?android:attr/textColorPrimary"
+        android:textColorHint="?android:attr/textColorSecondary"
+        android:layout_marginBottom="4dp"/>
+
+    <TextView
+        android:id="@+id/textViewPasswordHint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Min 8 chars · uppercase · lowercase · digit · special char (!@#$%^&amp;*)"
+        android:textSize="11sp"
+        android:textColor="?android:attr/textColorSecondary"
         android:layout_marginBottom="8dp"/>
 
     <EditText
@@ -35,6 +51,8 @@
         android:layout_height="wrap_content"
         android:hint="Confirm Password"
         android:inputType="textPassword"
+        android:textColor="?android:attr/textColorPrimary"
+        android:textColorHint="?android:attr/textColorSecondary"
         android:layout_marginBottom="16dp"/>
 
     <Button
@@ -49,6 +67,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Already have an account? Login here"
+        android:textColor="?attr/colorPrimary"
         android:clickable="true"
         android:focusable="true"/>
 </LinearLayout>
